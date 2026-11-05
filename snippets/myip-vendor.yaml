@@ -1,0 +1,50 @@
+#cloud-config
+# MyIP Networks - vendor-data shared by every cloud template (all distros).
+# Installed to /var/lib/vz/snippets/myip-vendor.yaml on every node (install.sh).
+# Per-VM data (hostname, user, password, SSH keys, IP) comes from Proxmox
+# (qm set --ciuser/--cipassword/--sshkeys/--ipconfig0) and wins over this file.
+# Read once, at the FIRST boot of each new VM. Editing it never affects
+# existing VMs - only VMs created afterwards.
+
+timezone: Europe/Athens
+package_update: true
+package_upgrade: true
+
+# root: SSH key only (same keys as the Proxmox ciuser), never password.
+disable_root: false
+ssh_pwauth: true
+
+# Portable across apt/dnf distros (same package names everywhere).
+packages:
+  - qemu-guest-agent
+  - sudo
+  - curl
+  - wget
+  - ca-certificates
+  - rsync
+  - bash-completion
+
+write_files:
+  # Without this, hot-plugged vCPUs stay offline until reboot (see NOTES.md).
+  - path: /etc/udev/rules.d/80-hotplug-cpu-mem.rules
+    permissions: '0644'
+    content: |
+      # MyIP: bring Proxmox hot-plugged vCPUs / RAM online automatically.
+      SUBSYSTEM=="cpu", ACTION=="add", TEST=="online", ATTR{online}=="0", ATTR{online}="1"
+      SUBSYSTEM=="memory", ACTION=="add", TEST=="state", ATTR{state}=="offline", ATTR{state}="online"
+  - path: /etc/ssh/sshd_config.d/10-myip.conf
+    permissions: '0644'
+    content: |
+      # MyIP defaults: root by key only; users may use password or key.
+      PermitRootLogin prohibit-password
+      PasswordAuthentication yes
+
+runcmd:
+  # Distro-specific niceties (package names differ between Debian/Ubuntu and Alma).
+  - [sh, -c, 'if command -v apt-get >/dev/null; then DEBIAN_FRONTEND=noninteractive apt-get install -y iputils-ping dnsutils net-tools vim htop less man-db; else dnf install -y iputils bind-utils net-tools vim-enhanced less man-db; fi']
+  # sudo asks for the user password (cloud-init default is NOPASSWD).
+  - [sh, -c, 'if [ -f /etc/sudoers.d/90-cloud-init-users ]; then sed -i "s/NOPASSWD://" /etc/sudoers.d/90-cloud-init-users; fi']
+  - [systemctl, enable, --now, qemu-guest-agent]
+  - [sh, -c, 'systemctl reload ssh 2>/dev/null || systemctl reload sshd 2>/dev/null || true']
+
+final_message: "MyIP cloud-init done after $UPTIME seconds"

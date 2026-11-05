@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# MyIP Networks - build/refresh Proxmox cloud-init templates from official images.
+#
+#   refresh-templates              # every OS in etc/os.list; rebuild only if upstream changed
+#   refresh-templates debian-13    # just one
+#   refresh-templates --force      # rebuild everything
+#   refresh-templates --list       # show what this node has / would build
+#
+# Reads etc/os.list and etc/nodes.list from the repo this script lives in.
+# Safe to run any time (cron-friendly): an unchanged image is a no-op, and it
+# never touches a VMID that is not already a template.
+set -euo pipefail
+
+REPO="$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)"
+OSLIST="$REPO/etc/os.list"
+NODES="$REPO/etc/nodes.list"
+CACHE="/var/lib/vz/template/cloud"
+SNIPPET_FILE="/var/lib/vz/snippets/myip-vendor.yaml"
+SNIPPET="local:snippets/myip-vendor.yaml"
+
+trim() { local s="$*"; s="${s#"${s%%[![:space:]]*}"}"; echo "${s%"${s##*[![:space:]]}"}"; }
+
+NODE="$(hostname -s)"
+row=$(grep -vE '^\s*(#|$)' "$NODES" | awk -F'|' -v OFS='|' -v n="$NODE" '{gsub(/ /,"",$1)} $1==n')
+[ -n "$row" ] || { echo "node '$NODE' is not in $NODES - add it first" >&2; exit 1; }
+IFS='|' read -r _ BASE STORAGE BRIDGE <<<"$row"
+BASE=$(trim "$BASE"); STORAGE=$(trim "$STORAGE"); BRIDGE=$(trim "$BRIDGE")
+
+FORCE=0; ONLY=""; LIST=0
+for a in "$@"; do
+  case "$a" in
+    --force) FORCE=1 ;;
+    --list)  LIST=1 ;;
+    -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
+    *) ONLY="$a" ;;
+  esac
+done
+
+[ -f "$SNIPPET_FILE" ] || { echo "missing $SNIPPET_FILE (run install.sh)" >&2; exit 1; }
+mkdir -p "$CACHE"
+
+grep -vE '^\s*(#|$)' "$OSLIST" | while IFS='|' read -r idx name url sumurl algo ostype; do
+  idx=$(trim "$idx"); name=$(trim "$name"); url=$(trim "$url")
+  sumurl=$(trim "$sumurl"); algo=$(trim "$algo"); ostype=$(trim "$ostype")
+  [ -n "$ONLY" ] && [ "$ONLY" != "$name" ] && continue
+  vmid=$((BASE + idx)); file="$(basename "$url")"; sumfile="$CACHE/.$vmid.sum"
+
+  if [ "$LIST" = 1 ]; then
+    state="missing"; qm config "$vmid" >/dev/null 2>&1 && state="present"
+    printf "%-6s %-14s %s\n" "$vmid" "tpl-$name" "$state"; continue
+  fi
+  echo "== $name -> template $vmid"
+
+  want=$(curl -fsSL "$sumurl" | awk -v f="$file" '{n=$NF; sub(/^\*/,"",n)} n==f {print $1; exit}')
+  [ -n "$want" ] || { echo "   no checksum for $file, skipping" >&2; continue; }
+
+  have=""
+  if qm config "$vmid" >/dev/null 2>&1 && [ -f "$sumfile" ]; then have=$(cat "$sumfile"); fi
+  if [ "$FORCE" = 0 ] && [ "$have" = "$want" ]; then echo "   up to date"; continue; fi
+
+  tmp="$CACHE/$file.part"
+  curl -fL --retry 3 -sS -o "$tmp" "$url"
+  got=$("${algo}sum" "$tmp" | awk '{print $1}')
+  [ "$got" = "$want" ] || { echo "   CHECKSUM MISMATCH for $file" >&2; rm -f "$tmp"; continue; }
+  mv -f "$tmp" "$CACHE/$file"
+
+  if qm config "$vmid" >/dev/null 2>&1; then
+    qm config "$vmid" | grep -q '^template: 1' \
+      || { echo "   $vmid exists and is NOT a template - refusing to touch it" >&2; continue; }
+    qm destroy "$vmid" --purge 1
+  fi
+
+  qm create "$vmid" --name "tpl-$name" --ostype "$ostype" \
+    --machine q35 --bios seabios --cpu host --sockets 1 --cores 2 --numa 1 \
+    --memory 2048 --balloon 0 \
+    --hotplug disk,network,usb,memory,cpu \
+    --agent enabled=1,fstrim_cloned_disks=1 \
+    --scsihw virtio-scsi-single \
+    --net0 "virtio,bridge=$BRIDGE,firewall=1" \
+    --serial0 socket --vga std --onboot 0 --tags "template;cloud-init"
+  qm set "$vmid" --scsi0 "$STORAGE:0,import-from=$CACHE/$file,iothread=1,discard=on,ssd=1"
+  qm set "$vmid" --ide2 "$STORAGE:cloudinit" --boot order=scsi0
+  qm set "$vmid" --cicustom "vendor=$SNIPPET" --ciupgrade 1 --ipconfig0 ip=dhcp
+  qm set "$vmid" --description "MyIP cloud template: $name
+source: $url
+built: $(date -Is) on $NODE
+repo: github.com/chrismfz/pve-cloud-templates"
+  qm template "$vmid"
+  echo "$want" > "$sumfile"
+  echo "   built $vmid tpl-$name"
+done

@@ -1,0 +1,15 @@
+# MyIP cloud templates - one line per OS.
+# Format:  idx | name | image URL | checksum URL | algo | ostype
+#   idx    -> template VMID = node base + idx  (vega 9000+idx, pegasus 9100+idx)
+#   name   -> template is called "tpl-<name>"; also the argument to refresh-templates
+#   algo   -> sha256 or sha512 (whatever the distro publishes)
+# Never reuse an idx for a different OS; append new ones at the end.
+# To retire an OS: delete its line, then `qm destroy <vmid>` on every node.
+
+0|debian-13|https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2|https://cloud.debian.org/images/cloud/trixie/latest/SHA512SUMS|sha512|l26
+1|ubuntu-2404|https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img|https://cloud-images.ubuntu.com/noble/current/SHA256SUMS|sha256|l26
+2|ubuntu-2604|https://cloud-images.ubuntu.com/resolute/current/resolute-server-cloudimg-amd64.img|https://cloud-images.ubuntu.com/resolute/current/SHA256SUMS|sha256|l26
+3|alma-10|https://repo.almalinux.org/almalinux/10/cloud/x86_64/images/AlmaLinux-10-GenericCloud-latest.x86_64.qcow2|https://repo.almalinux.org/almalinux/10/cloud/x86_64/images/CHECKSUM|sha256|l26
+
+# Example - when Debian 14 (forky) is out, uncomment:
+# 4|debian-14|https://cloud.debian.org/images/cloud/forky/latest/debian-14-genericcloud-amd64.qcow2|https://cloud.debian.org/images/cloud/forky/latest/SHA512SUMS|sha512|l26

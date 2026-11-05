@@ -1,0 +1,9 @@
+# Proxmox node -> template VMID base.
+# local-zfs is not shared between nodes, so every node keeps its own copy of
+# every template. Give each node its own block of 100 VMIDs.
+# Format:  hostname-short | base | storage | bridge
+
+vega    | 9000 | local-zfs | vmbr0
+pegasus | 9100 | local-zfs | vmbr0
+# third node (Ceph, one day):
+# orion3 | 9200 | local-zfs | vmbr0

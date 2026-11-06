@@ -25,6 +25,42 @@ qm set $VMID --cores $CORES_MAX --vcpus $VCPUS --memory $RAM \
 qm resize $VMID scsi0 $DISK
 ```
 
+### Κωδικός / κλειδί
+
+`--cipassword` για κωδικό, `--sshkeys <αρχείο>` για κλειδιά (ένα ανά γραμμή).
+Μπορείς και τα δύο.
+
+```bash
+# random password — σημείωσέ το, το Proxmox κρατάει μόνο το hash
+PW=$(openssl rand -base64 18)
+qm set $VMID --ciuser admin --cipassword "$PW"; echo "admin / $PW"
+
+# κλειδί πελάτη (από ticket)
+echo 'ssh-ed25519 AAAA... pelatis@laptop' > /tmp/k.pub
+qm set $VMID --sshkeys /tmp/k.pub
+
+# δικό μας + πελάτη
+cat /root/.ssh/id_ed25519.pub /tmp/k.pub > /tmp/k2.pub
+qm set $VMID --sshkeys /tmp/k2.pub
+```
+
+| Σενάριο | Τι βάζεις |
+|---|---|
+| Πελάτης χωρίς κλειδί | random password (στο welcome email) |
+| Πελάτης με κλειδί | το κλειδί του + random password (το `sudo` ζητάει password) |
+| Δικό μας VM | δικό μας κλειδί + random password |
+
+> ⚠️ Λόγω `disable_root: false` στο snippet, **όλα** τα κλειδιά μπαίνουν και στον
+> root. Κλειδί πελάτη = root με κλειδί (σωστό για unmanaged). Αν βάλεις και το δικό
+> μας, ο πελάτης το βλέπει στο `/root/.ssh/authorized_keys` και μπορεί να το σβήσει.
+
+GUI: VM → **Cloud-Init** → User / Password / SSH public key → **Regenerate Image**.
+
+**Αλλαγή αργότερα:** αλλάζεις `--cipassword`/`--sshkeys` + reboot → νέο instance-id,
+το cloud-init ξαναγράφει χρήστη/κωδικό/κλειδιά, **αλλά** αλλάζουν και τα SSH host
+keys (warning στον πελάτη). Για απλό reset κωδικού χωρίς αυτό:
+`qm guest passwd $VMID admin` (θέλει agent).
+
 ### Anti-spoofing (ΠΑΝΤΑ)
 
 ```bash

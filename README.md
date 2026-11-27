@@ -1,13 +1,6 @@
 # pve-cloud-templates
 
-Cloud-init templates για το Proxmox cluster της MyIP (vega, pegasus, phoenix).
-Ένα νέο VM με OS έτοιμο, static IP, χρήστη/κλειδί, guest agent, NUMA και
-live hotplug — σε ~1 λεπτό, χωρίς installer.
-
-> **Αν θυμάσαι ένα πράγμα:** δεν φτιάχνουμε δικά μας images. Παίρνουμε τα
-> επίσημα cloud images της κάθε διανομής (αυτές τα συντηρούν) και τους
-> «κολλάμε» τις δικές μας ρυθμίσεις. Η συντήρηση είναι μια γραμμή σε ένα
-> αρχείο κειμένου.
+Cloud-init templates
 
 ## Τι υπάρχει εδώ
 

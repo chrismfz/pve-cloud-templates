@@ -32,7 +32,7 @@ Commit + push.
 
 ```bash
 cd /opt/pve-cloud-templates && git pull
-refresh-templates debian-14       # → 9004 στον vega, 9104 στον pegasus
+refresh-templates debian-14       # → 9004 στον vega, 9104 στον pegasus, 9204 στον phoenix
 ```
 
 ## 4. Test
@@ -48,5 +48,5 @@ refresh-templates debian-14       # → 9004 στον vega, 9104 στον pegasu
 ## Απόσυρση παλιού OS
 
 1. Σβήσε (ή σχολίασε) τη γραμμή του από το `etc/os.list`, push.
-2. Σε κάθε node: `qm destroy <vmid>` για το template του (π.χ. 9000 / 9100).
+2. Σε κάθε node: `qm destroy <vmid>` για το template του (π.χ. 9000 / 9100 / 9200).
    Τα VMs που φτιάχτηκαν από αυτό δεν επηρεάζονται (full clones).

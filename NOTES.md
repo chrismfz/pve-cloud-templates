@@ -16,6 +16,9 @@
 
 ## Proxmox
 
+- **Δεν υπάρχει `pvesm config`.** Για να διαβάσεις ρυθμίσεις storage: `pvesh get /storage/<id>`.
+  (Το install.sh το είχε και με `set -e` τερμάτιζε σιωπηλά στο βήμα 1 — διορθώθηκε 2026-11-28.)
+
 - Το `description` του VM αποθηκεύεται URL-encoded (`:` → `%3A`), οπότε **μην** κρατάς
   machine-readable δεδομένα εκεί. Το checksum του image κρατιέται στο
   `/var/lib/vz/template/cloud/.<vmid>.sum`.
@@ -47,4 +50,4 @@
 
 ## AlmaLinux 10
 
-- Θέλει CPU **x86-64-v3** (AVX2). vega (E5-2699 v3) και pegasus (E5-2640 v4): OK.
+- Θέλει CPU **x86-64-v3** (AVX2). vega (E5-2699 v3), pegasus (E5-2640 v4) και phoenix (EPYC 4545P): OK.

@@ -5,5 +5,5 @@
 
 vega    | 9000 | local-zfs | vmbr0
 pegasus | 9100 | local-zfs | vmbr0
-# third node (Ceph, one day):
-# orion3 | 9200 | local-zfs | vmbr0
+phoenix | 9200 | local-zfs | vmbr0
+# next node: 9300

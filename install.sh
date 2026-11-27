@@ -17,7 +17,7 @@ grep -vE '^\s*(#|$)' "$REPO/etc/nodes.list" | awk -F'|' '{gsub(/ /,"",$1); print
   || { echo "node '$NODE' is missing from etc/nodes.list - add a line for it first" >&2; exit 1; }
 
 echo "1/5 allow 'snippets' on the 'local' storage (cluster-wide, harmless if already set)"
-cur=$(pvesm config local 2>/dev/null | awk '/^\s*content/{print $2}')
+cur=$(pvesh get /storage/local --output-format json | python3 -c 'import json,sys; print(json.load(sys.stdin).get("content",""))')
 case ",$cur," in *,snippets,*) echo "    already enabled" ;; *) pvesm set local --content "${cur:+$cur,}snippets"; echo "    enabled" ;; esac
 
 echo "2/5 install the cloud-init vendor snippet"

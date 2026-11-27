@@ -6,7 +6,7 @@ set -euo pipefail
 VMID=2690                    # = WHMCS service id (pvewhmcs)
 NAME=vm.example.gr
 IP=84.54.49.15
-TPL=9000                     # vega: 9000 debian-13, 9001 ubuntu-2404, 9002 ubuntu-2604, 9003 alma-10 (pegasus: 91xx)
+TPL=9000                     # vega: 9000 debian-13, 9001 ubuntu-2404, 9002 ubuntu-2604, 9003 alma-10 (pegasus: 91xx, phoenix: 92xx)
 CORES_MAX=8                  # hotplug ceiling
 VCPUS=4                      # what the customer pays for
 RAM=4096                     # MB

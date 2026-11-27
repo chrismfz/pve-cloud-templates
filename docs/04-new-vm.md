@@ -7,7 +7,7 @@
 
 - **VMID**: στη MyIP το VMID = id υπηρεσίας στο WHMCS (το θέλει το pvewhmcs).
 - **IP**: ελεύθερη από το 84.54.49.0/24 (δες ότι δεν είναι σε ενεργή υπηρεσία).
-- **Node**: template 90xx αν φτιάχνεις στον vega, 91xx στον pegasus.
+- **Node**: template 90xx αν φτιάχνεις στον vega, 91xx στον pegasus, 92xx στον phoenix.
 
 ## Βήματα (παράδειγμα: Cloud 1 + 2 vCPU extra, Debian 13, στον vega)
 

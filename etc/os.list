@@ -1,6 +1,6 @@
 # MyIP cloud templates - one line per OS.
 # Format:  idx | name | image URL | checksum URL | algo | ostype
-#   idx    -> template VMID = node base + idx  (vega 9000+idx, pegasus 9100+idx)
+#   idx    -> template VMID = node base + idx  (vega 9000+idx, pegasus 9100+idx, phoenix 9200+idx)
 #   name   -> template is called "tpl-<name>"; also the argument to refresh-templates
 #   algo   -> sha256 or sha512 (whatever the distro publishes)
 # Never reuse an idx for a different OS; append new ones at the end.

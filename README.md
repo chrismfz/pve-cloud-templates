@@ -1,6 +1,6 @@
 # pve-cloud-templates
 
-Cloud-init templates για το Proxmox cluster της MyIP (vega, pegasus).
+Cloud-init templates για το Proxmox cluster της MyIP (vega, pegasus, phoenix).
 Ένα νέο VM με OS έτοιμο, static IP, χρήστη/κλειδί, guest agent, NUMA και
 live hotplug — σε ~1 λεπτό, χωρίς installer.
 
@@ -14,7 +14,7 @@ live hotplug — σε ~1 λεπτό, χωρίς installer.
 | Αρχείο | Τι κάνει |
 |---|---|
 | `etc/os.list` | **Ποια OS** έχουμε (μια γραμμή το καθένα). Εδώ προσθέτεις νέα έκδοση. |
-| `etc/nodes.list` | **Ποιοι nodes** και ποιο εύρος VMID παίρνει ο καθένας (vega 90xx, pegasus 91xx). |
+| `etc/nodes.list` | **Ποιοι nodes** και ποιο εύρος VMID παίρνει ο καθένας (vega 90xx, pegasus 91xx, phoenix 92xx). |
 | `bin/refresh-templates` | Κατεβάζει τα images, ελέγχει checksum, φτιάχνει/ανανεώνει τα templates. |
 | `snippets/myip-vendor.yaml` | Οι κοινές ρυθμίσεις που εφαρμόζονται **μέσα** σε κάθε νέο VM στο 1ο boot. |
 | `install.sh` | Στήνει έναν node από το μηδέν (ή τον ενημερώνει μετά από `git pull`). |
@@ -46,12 +46,12 @@ refresh-templates --list
 
 ## Templates (σήμερα)
 
-| OS | vega | pegasus |
-|---|---|---|
-| Debian 13 (trixie) | 9000 | 9100 |
-| Ubuntu 24.04 LTS (noble) | 9001 | 9101 |
-| Ubuntu 26.04 LTS (resolute) | 9002 | 9102 |
-| AlmaLinux 10 | 9003 | 9103 |
+| OS | vega | pegasus | phoenix |
+|---|---|---|---|
+| Debian 13 (trixie) | 9000 | 9100 | 9200 |
+| Ubuntu 24.04 LTS (noble) | 9001 | 9101 | 9201 |
+| Ubuntu 26.04 LTS (resolute) | 9002 | 9102 | 9202 |
+| AlmaLinux 10 | 9003 | 9103 | 9203 |
 
 Όλα: `cpu host`, `numa 1`, `hotplug disk,network,usb,memory,cpu`, guest agent,
 virtio-scsi-single + iothread, NIC με `firewall=1`, cloud-init drive στο `ide2`,
